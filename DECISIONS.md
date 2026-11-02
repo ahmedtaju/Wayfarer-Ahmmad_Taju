@@ -4,11 +4,16 @@ This document records architectural, mathematical, and implementation decisions 
 
 ---
 
-## 1. Tooling & Environment Decisions
+## 1. Tooling & Workspace Architecture
 
-### Full-Stack Architecture
-* **Decision:** Next.js (App Router) with TypeScript.
-* **Rationale:** Next.js App Router provides unified client and server execution in a single TypeScript project. API Route Handlers eliminate the need for multi-process choreography or external reverse proxies, ensuring the application starts reliably from a fresh clone with a single command.
+### Split Workspace (`web` and `api`)
+* **Decision:** Separate the repository into `web/` (Next.js App Router) and `api/` (Express) managed via root npm workspaces.
+* **Rationale:**
+  * Clean separation of concerns: Backend business logic, transactions, SQLite operations, and test processes live strictly in `api/`. Presentation logic, layout, Tailwind styling, and routing live strictly in `web/`.
+  * Reviewers can still run `npm install`, `npm run dev`, and `npm test` from the root repository without managing multiple terminals.
+* **Frontend-to-Backend Connectivity:**
+  * Next.js App Router uses `rewrites()` in `next.config.ts` to proxy all `/api/*` traffic transparently to `http://localhost:3001/api/*`.
+  * Eliminates CORS complexity in production and preserves a consistent `/api/*` request contract across browser clients.
 
 ### Database Engine & Driver Evaluation
 * **Requirement:** Fast, file-based SQLite database with zero external setup.
@@ -18,12 +23,12 @@ This document records architectural, mathematical, and implementation decisions 
 
 ### Testing Framework
 * **Decision:** Vitest.
-* **Rationale:** Vitest provides sub-second execution speeds, native TypeScript support without `ts-jest` compilation overhead, and seamless integration with the Node.js test environment.
+* **Rationale:** Vitest provides sub-second execution speeds, native TypeScript support without compilation overhead, and unified multi-package test execution from repository root via `npm test`.
 
 ---
 
 ## 2. Upcoming Architectural Milestones
 
-* **Honest Ranking:** Formulate a Bayesian damped mean to address the single 5★ review anomaly without arbitrary threshold cliffs.
-* **Anti-Overbooking:** Implement database-level atomic conditional updates with idempotency locks to guarantee zero overbooking under simultaneous requests.
-
+* **Database Model & Integrity Rules:** Define 5 entities with SQLite foreign-key enforcement and unique constraint on `(place_id, user_id)` for review upserts.
+* **Honest Ranking:** Formulate the weighted formula $(S = \frac{\text{stars} + 17.5}{\text{count} + 5})$ representing 5 initial reviews at 3.5 stars.
+* **Safe Booking Concurrency:** Immediate database transaction (`BEGIN IMMEDIATE`) with multi-process parallel testing.

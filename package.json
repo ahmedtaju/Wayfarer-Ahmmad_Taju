@@ -1,35 +1,26 @@
 {
-  "name": "wayfarer",
+  "name": "wayfarer-root",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "api",
+    "web"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "seed": "tsx src/db/seed.ts",
+    "dev": "concurrently -k -n \"api,web\" -c \"blue,green\" \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
+    "build": "npm run build --workspace=web",
+    "start": "concurrently -k -n \"api,web\" -c \"blue,green\" \"npm run start --workspace=api\" \"npm run start --workspace=web\"",
+    "seed": "npm run seed --workspace=api",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@libsql/client": "^0.14.0",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.475.0",
-    "next": "^15.1.7",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.0.1"
+    "concurrently": "^9.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.5.2",
-    "tailwindcss": "^3.4.17",
     "tsx": "^4.19.3",
     "typescript": "^5.7.3",
     "vitest": "^3.0.6"
   }
 }
-

@@ -1,17 +1,25 @@
 # dependencies
-/node_modules
+node_modules/
+**/node_modules/
 /.pnp
 .pnp.js
 
 # testing
-/coverage
+coverage/
+**/coverage/
 
-# next.js
-/.next/
-/out/
+# next.js build output
+.next/
+**/.next/
+web/.next/
+out/
+**/out/
 
-# production
-/build
+# production / dist
+build/
+dist/
+api/dist/
+**/dist/
 
 # misc
 .DS_Store
@@ -38,5 +46,5 @@ next-env.d.ts
 *.db-journal
 *.db-wal
 *.db-shm
-data/wayfarer.db*
-
+data/*.db*
+api/data/*.db*

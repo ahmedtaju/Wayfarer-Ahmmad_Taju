@@ -4,42 +4,52 @@ Wayfarer is a full-stack city guide and tour booking application designed to sol
 
 ---
 
-## 🛠️ Tech Stack & Environment
+## 🛠️ Tech Stack & Workspace Architecture
 
-* **Node.js:** `>= 20.0.0` (Tested & verified on `Node.js v24.14.1`)
-* **Framework:** Next.js (App Router) + TypeScript
-* **Styling:** Tailwind CSS
-* **Database Driver:** SQLite via `@libsql/client` (Zero external daemon; native cross-platform precompiled driver)
+* **Workspace Layout:**
+  * `web/`: Next.js (App Router) + TypeScript + Tailwind CSS (Port 3000)
+  * `api/`: Express API Server + SQLite (`@libsql/client`) + TypeScript (Port 3001)
+  * Rewrites: Frontend `/api/*` requests forward automatically to the Express backend
+* **Node.js Requirement:** `>= 20.0.0` (Verified on `Node.js v24.14.1`)
 * **Test Runner:** Vitest
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started (3-Command Reviewer Workflow)
 
-### 1. Install Dependencies
+After entering a fresh clone, run:
+
 ```bash
+# 1. Install all dependencies across both workspaces from root
 npm install
+
+# 2. Setup and seed database (deterministic demo data)
+npm run seed
+
+# 3. Start both Express API and Next.js Frontend concurrently
+npm run dev
 ```
 
-### 2. Verify Tooling Checkpoint & Database Driver
+Open [http://localhost:3000](http://localhost:3000) in your browser. Next.js communicates with Express via `/api/*` rewrites.
+
+---
+
+## 🧪 Automated Testing (1 Command)
+
+Run all unit, integration, and parallel concurrency tests once from root:
+
 ```bash
 npm test
 ```
 
-### 3. Start Development Server
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
 ---
 
-## 📋 Progress Log & Checkpoints
+## 📋 Checkpoints & Progress Log
 
-- [x] **Checkpoint 1:** Development tooling verified (Next.js App Router, Tailwind, SQLite driver, Vitest, Git setup).
-- [ ] **Checkpoint 2:** Database schema & seed data (Places, Reviews, Tour Slots, Users).
-- [ ] **Checkpoint 3:** Honest Bayesian ranking formula implementation & unit tests.
-- [ ] **Checkpoint 4:** Atomic tour booking & parallel concurrency test.
-- [ ] **Checkpoint 5:** Backend API endpoints & interactive master-detail UI.
-- [ ] **Checkpoint 6:** Final documentation review (`DECISIONS.md`, `AI_USAGE.md`).
+- [x] **Checkpoint 1:** Development tooling verified (Node.js version, SQLite driver, Vitest).
+- [x] **Checkpoint 2:** Workspace structure (`web/` Next.js + `api/` Express), Express health endpoint, Next.js rewrites, and integration test.
+- [ ] **Checkpoint 3:** Database model & repeatable seed data (Places, Reviews, Tour Slots, Users).
+- [ ] **Checkpoint 4:** Honest Bayesian ranking formula implementation & unit tests.
+- [ ] **Checkpoint 5:** Concurrency-safe atomic tour booking & parallel multi-process test harness.
+- [ ] **Checkpoint 6:** Shared UI system, directory browser, and booking/review dialogs.
+- [ ] **Checkpoint 7:** Final review and documentation audit.
