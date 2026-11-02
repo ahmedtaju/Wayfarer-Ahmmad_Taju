@@ -26,3 +26,4 @@ This document records architectural, mathematical, and implementation decisions 
 
 * **Honest Ranking:** Formulate a Bayesian damped mean to address the single 5★ review anomaly without arbitrary threshold cliffs.
 * **Anti-Overbooking:** Implement database-level atomic conditional updates with idempotency locks to guarantee zero overbooking under simultaneous requests.
+

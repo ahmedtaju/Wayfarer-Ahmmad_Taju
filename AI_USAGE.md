@@ -13,3 +13,4 @@ This document tracks all AI tool interactions, prompts, verification steps, and 
   * The initial AI output suggested adding `better-sqlite3`. During verification on Windows with Node v24.14.1, the package failed installation due to `node-gyp` missing Visual Studio C++ build tools.
   * Rather than requiring reviewers to install gigabytes of C++ compilers, I intervened and switched the SQLite driver to `@libsql/client`, which includes cross-platform precompiled binaries.
   * Verified that `npm install` and `npm test` execute cleanly with zero compilation warnings.
+

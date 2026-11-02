@@ -16,3 +16,4 @@ describe("Tooling & Driver Verification Checkpoint", () => {
     expect(Number(result.rows[0].is_alive)).toBe(1);
   });
 });
+
