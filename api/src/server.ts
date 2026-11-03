@@ -4,15 +4,21 @@ import { initializeDatabase } from "./db/schema";
 
 async function start(): Promise<void> {
   const port = Number(process.env.PORT ?? 3001);
-  if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new Error("PORT must be an integer from 1 to 65535.");
+  if (!Number.isInteger(port) || port < 0 || port > 65535) {
+    throw new Error("PORT must be an integer from 0 to 65535.");
   }
   const database = await openDatabase();
   try {
     await initializeDatabase(database);
     const app = createApp(database);
     const server = app.listen(port, () => {
-      console.log(`Wayfarer API listening on http://localhost:${port}`);
+      const address = server.address();
+      if (!address || typeof address === "string") return;
+      console.log(`Wayfarer API listening on http://localhost:${address.port}`);
+      // A forked parent can wait for actual readiness without guessing ports.
+      process.send?.({
+        type: "api-ready", port: address.port, pid: process.pid, databasePath: database.path,
+      });
     });
     server.on("error", (error) => {
       database.close();
