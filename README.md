@@ -1,6 +1,6 @@
 # Wayfarer
 
-A city guide for Addis Ababa with review-aware rankings and tour availability. This milestone implements the database, repeatable demo data, read API, and tested ranking rule. Review submission, concurrency-safe booking, and the feature interface are the next milestones.
+A city guide for Addis Ababa with review-aware rankings and tour availability. The backend implements repeatable demo data, filtered place browsing, complete place details, review upserts, and atomic tour booking. The feature interface remains the next milestone.
 
 ## Run locally
 
@@ -28,7 +28,9 @@ The seed contains Sara, Abel, and Liya; ten places across History, Food, and Nat
 | `npm start` | Start both applications after building. |
 | `npm run seed` | Explicitly reset and recreate demo data. |
 
-Tests use separate temporary SQLite files. Coverage includes database constraints and connection settings, seed consistency and rollback, persistence after reopening, API responses and validation, and ranking behavior. The multi-process booking test belongs to the upcoming booking milestone.
+Tests use separate temporary SQLite files. Coverage includes database constraints and connection settings, seed consistency and rollback, persistence after reopening, API responses and validation, ranking, city time labels, review upserts, and booking outcomes. A concurrency test starts two independent Express processes sharing one SQLite file and sends 20 parallel requests for the final seat: it asserts one confirmation, 19 capacity conflicts, and ten total persisted seats. A separate held-lock scenario checks `503`, release and successful retry, then `409` for the full slot. The test runner removes temporary files after its workers exit, including on Windows.
+
+The current suite has 103 passing tests across nine files. TypeScript checks and both production builds also pass.
 
 ## Structure
 
@@ -36,8 +38,9 @@ Tests use separate temporary SQLite files. Coverage includes database constraint
 api/src/
   db/          Connection setup, schema, demo fixtures, and explicit seed
   routes/      Express HTTP endpoints
-  services/    Place queries and ranking logic
+  services/    Place queries, ranking, review upserts, and atomic booking
   http/        Shared input validation and error handling
+  lib/         Shared city time formatting
   __tests__/   Unit and database-backed integration tests
 web/           Next.js pages, components, and frontend configuration
 ```
@@ -46,13 +49,17 @@ The default database is `api/data/wayfarer.db`. An optional `WAYFARER_DB_PATH` p
 
 ## API and ranking
 
-The implemented operations are `GET /api/users`, `GET /api/places`, and `GET /api/places/:id`, alongside `GET /api/health`. Category filtering and sorting happen on the backend. The [API contract](api/CONTRACT.md) defines response fields, query parameters, error outcomes, and the reserved review and booking operations.
+The implemented operations are `GET /api/users`, `GET /api/places`, `GET /api/places/:id`, `POST /api/places/:id/reviews`, and `POST /api/tour-slots/:id/bookings`, alongside `GET /api/health`. Category filtering and sorting happen on the backend. The [API contract](api/CONTRACT.md) defines response fields, query parameters, write inputs, and error outcomes.
+
+Place details include reviews with author identity, opening hours, and tour availability. Slots preserve UTC timestamps and include labels in the explicit `Africa/Addis_Ababa` time zone. Write requests use a persisted demo user selected through `X-User-Id`; this is a demonstration identity mechanism, not authentication. A user can create or update one review per place. Booking checks remaining capacity and inserts seats in the same SQLite write transaction, confirming success only after commit.
 
 Top-rated sorting uses `(totalStars + 17.5) / (reviewCount + 5)`: five starting reviews averaging 3.5 stars. The museum's ratings of 5, 5, and 4 score **3.9375**, above a new café's single five-star review at **3.75**. Raw averages remain separate from ranking scores. Unrated places appear last; equal scores use name and then ID for consistent ordering.
 
 ## Current scope
 
-The five entities and their relationships are implemented, including one review per user/place, foreign keys, integer/range constraints, and derived review and booking totals. The API reports actual tour availability, but the booking endpoint and its concurrency guarantee have not been implemented yet. Shared write-input validators are ready; review upserts, booking writes, and their browser journeys remain pending.
+The five entities and their relationships are implemented, including one review per user/place, foreign keys, integer/range constraints, and derived review and booking totals. Reviews preserve their ID and creation time when updated. Booking uses persisted seat totals without a duplicate availability counter; insufficient capacity returns `409`, while database contention returns `503` after the configured lock wait.
+
+After a busy or locked database error, the affected connection is discarded and the next operation opens a fresh connection with the same integrity settings. Failed bookings are not automatically retried.
 
 The current frontend is the existing application shell. The directory, details page, review and booking dialogs, and screenshots will follow the backend milestones. Demo user selection will not provide authentication. SQLite keeps this exercise self-contained; scaling, deployment configuration, and schema migrations remain future work.
 
