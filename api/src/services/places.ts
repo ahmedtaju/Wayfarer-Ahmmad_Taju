@@ -2,6 +2,7 @@ import type { Row } from "@libsql/client";
 import type { Database } from "../db/database";
 import { AppError } from "../http/errors";
 import type { PlaceCategory, PlaceFilters } from "../http/validation";
+import { CITY_TIME_ZONE, formatCityDateTime } from "../lib/time";
 import { calculateRanking, compareRankedPlaces } from "./ranking";
 
 export interface PlaceSummary {
@@ -28,12 +29,14 @@ export interface PlaceReview {
 export interface TourSlot {
   id: number;
   startsAt: string;
+  startsAtLabel: string;
   capacity: number;
   bookedSeats: number;
   availableSeats: number;
 }
 
 export interface PlaceDetail extends PlaceSummary {
+  timeZone: typeof CITY_TIME_ZONE;
   reviews: PlaceReview[];
   tourSlots: TourSlot[];
 }
@@ -108,6 +111,7 @@ export async function getPlaceDetail(database: Database, id: number): Promise<Pl
 
   return {
     ...toPlaceSummary(place),
+    timeZone: CITY_TIME_ZONE,
     reviews: results[1].rows.map((row) => ({
       id: Number(row.id),
       rating: Number(row.rating),
@@ -122,6 +126,7 @@ export async function getPlaceDetail(database: Database, id: number): Promise<Pl
       return {
         id: Number(row.id),
         startsAt: String(row.starts_at),
+        startsAtLabel: formatCityDateTime(String(row.starts_at)),
         capacity,
         bookedSeats,
         availableSeats: capacity - bookedSeats,

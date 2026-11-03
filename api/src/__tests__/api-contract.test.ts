@@ -75,7 +75,8 @@ describe("database-backed read API contract", () => {
     const detail = await request(app).get("/api/places/1");
     expect(detail.status).toBe(200);
     const summary = list.body.data.find((place: { id: number }) => place.id === 1);
-    const { reviews, tourSlots, ...detailSummary } = detail.body.data;
+    const { reviews, tourSlots, timeZone, ...detailSummary } = detail.body.data;
+    expect(timeZone).toBe("Africa/Addis_Ababa");
     expect(detailSummary).toEqual(summary);
     expect(reviews).toHaveLength(3);
     expect(reviews.map((review: { rating: number }) => review.rating).sort()).toEqual([4, 5, 5]);
@@ -155,7 +156,7 @@ describe("database-backed read API contract", () => {
   });
 });
 
-describe("validation shared with the pending write endpoints", () => {
+describe("validation shared by the review and booking endpoints", () => {
   it("parses URL identifiers and the acting-user header strictly", () => {
     expect(parsePositiveInteger("1")).toBe(1);
     expect(parseUserIdHeader("3")).toBe(3);
