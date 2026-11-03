@@ -8,11 +8,12 @@
   ],
   "scripts": {
     "dev": "concurrently -k -n \"api,web\" -c \"blue,green\" \"npm run dev --workspace=api\" \"npm run dev --workspace=web\"",
-    "build": "npm run build --workspace=web",
+    "build": "npm run build --workspace=api && npm run build --workspace=web",
+    "typecheck": "npm run typecheck --workspace=api && tsc --noEmit -p web/tsconfig.json",
     "start": "concurrently -k -n \"api,web\" -c \"blue,green\" \"npm run start --workspace=api\" \"npm run start --workspace=web\"",
     "seed": "npm run seed --workspace=api",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "node scripts/test.mjs",
+    "test:watch": "node scripts/test.mjs --watch"
   },
   "dependencies": {
     "concurrently": "^9.1.2"
