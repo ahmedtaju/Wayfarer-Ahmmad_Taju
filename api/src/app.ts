@@ -6,6 +6,7 @@ import { errorHandler } from "./http/errors";
 import { placesRouter } from "./routes/places";
 import { usersRouter } from "./routes/users";
 import { reviewsRouter } from "./routes/reviews";
+import { bookingsRouter } from "./routes/bookings";
 
 export function createApp(database?: Database) {
   const app = express();
@@ -19,6 +20,7 @@ export function createApp(database?: Database) {
     app.use("/api/users", usersRouter(database));
     app.use("/api/places/:id/reviews", reviewsRouter(database));
     app.use("/api/places", placesRouter(database));
+    app.use("/api/tour-slots/:id/bookings", bookingsRouter(database));
   }
 
   // Fallback 404 handler
