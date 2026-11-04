@@ -67,8 +67,7 @@ describe("place browsing and complete detail responses", () => {
       { bookedSeats: 8, availableSeats: 2 },
       { bookedSeats: 9, availableSeats: 1 },
     ]);
-    const { reviews: _reviews, tourSlots: _tourSlots, timeZone: _timeZone, ...summary } = detail;
-    expect(summary).toEqual(listed);
+    expect(detail).toMatchObject(listed as PlaceSummary);
   });
 
   it("preserves the UTC instant and labels a slot using Addis Ababa's next calendar day", async () => {

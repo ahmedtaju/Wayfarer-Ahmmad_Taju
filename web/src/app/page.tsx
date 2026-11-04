@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { CheckCircle2, AlertCircle, Compass, Server, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckCircle2, AlertCircle, Compass, Server } from "lucide-react";
 
 interface HealthResponse {
   status: string;

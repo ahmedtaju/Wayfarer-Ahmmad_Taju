@@ -9,16 +9,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        // Wayfarer Brand Tokens (Style Guide)
         brand: {
-          green: "#1B4332",
-          hunter: "#081C15",
-          sand: "#FAF8F5",
-          linen: "#F3EFEA",
-          terracotta: "#D97706",
-          crimson: "#DC2626",
+          green: "#245c46",
+          ink: "#183d32",
+          mint: "#eafef2",
+          cream: "#f7f5ef",
+          gold: "#b88628",
         },
       },
     },
