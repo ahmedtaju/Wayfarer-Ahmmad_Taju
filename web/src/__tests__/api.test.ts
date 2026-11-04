@@ -145,4 +145,19 @@ describe("frontend API requests", () => {
     expect(isAbortError(aborted)).toBe(true);
     expect(isAbortError(new Error("Canceled"))).toBe(false);
   });
+
+  it("preserves a native abort reason when cancellation interrupts response-body reading", async () => {
+    const controller = new AbortController();
+    let rejectBody!: (reason: unknown) => void;
+    const body = new Promise<unknown>((_accept, reject) => { rejectBody = reject; });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: () => body });
+    vi.stubGlobal("fetch", fetchMock);
+    const request = apiRequest("places", { signal: controller.signal });
+    const assertion = expect(request).rejects.toMatchObject({ name: "AbortError" });
+    await Promise.resolve();
+    controller.abort();
+    rejectBody(controller.signal.reason);
+    await assertion;
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });

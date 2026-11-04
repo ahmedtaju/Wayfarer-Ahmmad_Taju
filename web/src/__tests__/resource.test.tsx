@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import "../test/setup";
+import { StrictMode } from "react";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useApiResource } from "../hooks/use-api-resource";
@@ -22,6 +23,48 @@ afterEach(() => {
 });
 
 describe("API resource request ownership", () => {
+  it("handles real abort-signal rejections during StrictMode, actor changes, and unmount without logging or rejecting", async () => {
+    const pending: Array<{ signal: AbortSignal; resolve: (data: string) => void }> = [];
+    const fetchMock = vi.fn((_path: RequestInfo | URL, options?: RequestInit) => new Promise<Response>((accept, reject) => {
+      const signal = options?.signal;
+      if (!signal) throw new Error("The resource request must carry its cancellation signal.");
+      const abort = () => reject(signal.reason);
+      signal.addEventListener("abort", abort, { once: true });
+      pending.push({ signal, resolve: (data) => {
+        signal.removeEventListener("abort", abort);
+        accept(json(data));
+      } });
+      if (signal.aborted) abort();
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+    const consoleError = vi.spyOn(console, "error");
+    const unhandled = vi.fn();
+    window.addEventListener("unhandledrejection", unhandled);
+    try {
+      const { result, rerender, unmount } = renderHook(({ userId }) => useApiResource<string>("/api/places/1", userId), {
+        initialProps: { userId: 1 }, wrapper: StrictMode,
+      });
+      expect(pending).toHaveLength(2);
+      expect(pending[0].signal.aborted).toBe(true);
+      expect(pending[0].signal.reason.name).toBe("AbortError");
+      rerender({ userId: 2 });
+      expect(pending[1].signal.aborted).toBe(true);
+      await act(async () => { pending[2].resolve("Current actor's data"); });
+      expect(result.current.data).toBe("Current actor's data");
+      expect(result.current.error).toBeNull();
+
+      let refresh!: Promise<void>;
+      act(() => { refresh = result.current.reload({ throwOnError: true }); });
+      unmount();
+      await expect(refresh).resolves.toBeUndefined();
+      expect(pending[3].signal.aborted).toBe(true);
+      expect(consoleError).not.toHaveBeenCalled();
+      expect(unhandled).not.toHaveBeenCalled();
+    } finally {
+      window.removeEventListener("unhandledrejection", unhandled);
+    }
+  });
+
   it("clears a previous actor's data and ignores that actor's late response", async () => {
     const oldReload = deferredResponse();
     const newActor = deferredResponse();

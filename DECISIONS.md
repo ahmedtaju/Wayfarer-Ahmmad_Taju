@@ -26,7 +26,7 @@ A reproduction exposed retained native statements after timeout. Recovery discar
 
 URL category/sort state supports reloadable views. Local storage provides an initial traveller preference; current selection stays independent in each tab. Request cancellation, generations, and actor/path keys prevent stale responses or captured reloads from replacing current data.
 
-Dialogs retain drafts only while open, manage keyboard focus, and refresh derived statistics after writes. A failed post-write refresh reports that the action was saved; it never repeats the write. Conflicts refresh availability; lost or proxy write responses remain unknown and block resubmission. Availability reads cannot establish booking ownership. Category images are illustrative local reference assets with local placeholders/system fonts, avoiding runtime image/font CDNs.
+Dialogs retain drafts only while open, manage keyboard focus, and refresh derived statistics after writes. A failed post-write refresh reports that the action was saved; it never repeats the write. Conflicts refresh availability; lost or proxy write responses remain unknown and block resubmission. Availability reads cannot establish booking ownership. A short pre-hydration cleanup handles only the specific extension marker attributes seen in the provided browser report, with a bounded startup observer; other app markup and React diagnostics remain intact. Category images are illustrative local reference assets with local placeholders/system fonts, avoiding runtime image/font CDNs.
 
 ## Demo data and evidence
 

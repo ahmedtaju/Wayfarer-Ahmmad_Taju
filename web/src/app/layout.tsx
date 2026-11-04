@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import { Compass } from "lucide-react";
 import { Header } from "../components/header";
 import { TravellerProvider } from "../components/traveller-provider";
+import { preHydrationAttributeCleanup } from "../lib/pre-hydration";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,6 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Script id="pre-hydration-extension-attributes" strategy="beforeInteractive">
+          {preHydrationAttributeCleanup}
+        </Script>
         <TravellerProvider>
           <a className="skip-link" href="#main-content">Skip to content</a>
           <Header />

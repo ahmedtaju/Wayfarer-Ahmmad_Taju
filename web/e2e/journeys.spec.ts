@@ -19,6 +19,13 @@ async function museum(page: Page) {
 }
 
 test("browse, persist filters, create and edit a review, then switch travellers", async ({ page }) => {
+  const abortErrors: string[] = [];
+  page.on("console", (message) => {
+    if (message.type() === "error" && /AbortError|signal is aborted/.test(message.text())) abortErrors.push(message.text());
+  });
+  page.on("pageerror", (error) => {
+    if (/AbortError|signal is aborted/.test(error.message)) abortErrors.push(error.message);
+  });
   await page.goto("/");
   await expect(page.locator(".place-card")).toHaveCount(10);
   await page.screenshot({ path: "docs/screenshots/directory.png", fullPage: true });
@@ -54,6 +61,7 @@ test("browse, persist filters, create and edit a review, then switch travellers"
   await expect(page.getByLabel("Your review", { exact: true })).toHaveValue(/Excellent coffee/);
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
+  expect(abortErrors).toEqual([]);
 });
 
 test("two tabs competing for the last seat receive one confirmation and one conflict", async ({ page, context }) => {
@@ -163,4 +171,37 @@ test("phone layout keeps controls and dialogs within the viewport", async ({ pag
   expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(375);
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
+});
+
+test("cleans known extension markers before hydration without hiding diagnostics", async ({ page }) => {
+  const extensionMessages: string[] = [];
+  page.on("console", (message) => {
+    const text = message.text();
+    if (message.type() === "error" && /hydrated|bis_skin_checked|bis_register|cz-shortcut-listen|__processed_/.test(text)) extensionMessages.push(text);
+  });
+  await page.addInitScript(() => {
+    function annotate(root: Node) {
+      if (root instanceof Element) {
+        root.setAttribute("bis_skin_checked", "1");
+        if (root instanceof HTMLBodyElement) {
+          root.setAttribute("bis_register", "extension-data");
+          root.setAttribute("cz-shortcut-listen", "true");
+          root.setAttribute("__processed_e0b7f489-e38b-4816-bdc0-b250544e3f8c__", "true");
+        }
+      }
+      if (root instanceof Element || root instanceof Document) {
+        root.childNodes.forEach(annotate);
+      }
+    }
+    const extension = new MutationObserver((records) => {
+      for (const record of records) for (const node of record.addedNodes) annotate(node);
+    });
+    extension.observe(document, { childList: true, subtree: true });
+  });
+  await page.goto("/");
+  await expect(page.locator("a.place-card")).toHaveCount(10);
+  await expect(page.locator("body")).not.toHaveAttribute("bis_register");
+  await expect(page.locator("body")).not.toHaveAttribute("cz-shortcut-listen");
+  expect(await page.locator("body").evaluate((element) => Array.from(element.attributes).some(({ name }) => name.startsWith("__processed_")))).toBe(false);
+  expect(extensionMessages).toEqual([]);
 });
